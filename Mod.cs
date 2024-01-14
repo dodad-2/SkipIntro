@@ -1,6 +1,7 @@
 ﻿using MelonLoader;
 using SkipIntro;
 using UnityEngine.SceneManagement;
+using System.Runtime.CompilerServices;
 
 [assembly: MelonInfo(typeof(Mod), "SkipIntro", "0.0.1", "dodad")]
 [assembly: MelonGame("Bohemia Interactive", "Silica")]
@@ -31,21 +32,22 @@ public class Mod : MelonMod
         SceneManager.activeSceneChanged += activeSceneChangedDelegate;
 
         if (QListPresent())
-        {
-            QList.Options.RegisterMod(this);
-            //QList.Options.RegisterMod(Mod.instance);
-
-            //var skipIntroOption = new QList.OptionTypes.BoolOption(skipIntroEntry);
-
-            //QList.Options.AddOption(skipIntroOption);
-        }
+            RegisterQListOptions();
     }
 
     private static void ActiveSceneChanged(Scene oldScene, Scene newScene)
     {
-        if (skipIntroEntry != null && skipIntroEntry.Value && SceneManager.GetActiveScene().name.Equals("Intro"))
-        {
+        if (skipIntroEntry != null && !skipIntroEntry.Value && SceneManager.GetActiveScene().name.Equals("Intro"))
             SceneManager.LoadScene("MainMenu");
-        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    private void RegisterQListOptions()
+    {
+        QList.Options.RegisterMod(this);
+
+        var skipIntroOption = new QList.OptionTypes.BoolOption(skipIntroEntry);
+
+        QList.Options.AddOption(skipIntroOption);
     }
 }

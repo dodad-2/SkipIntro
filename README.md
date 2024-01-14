@@ -12,4 +12,4 @@ Skip Silica's intro
 
 **0.0.1**
 
-- Added project
+- First release
