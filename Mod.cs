@@ -2,16 +2,19 @@
 using SkipIntro;
 using UnityEngine.SceneManagement;
 
-[assembly: MelonInfo(typeof(Mod), "Skip Intro", "0.0.1", "dodad")]
+[assembly: MelonInfo(typeof(Mod), "SkipIntro", "0.0.1", "dodad")]
 [assembly: MelonGame("Bohemia Interactive", "Silica")]
+[assembly: MelonOptionalDependencies("QList")]
 
 namespace SkipIntro;
 
 public class Mod : MelonMod
 {
     public static Mod? instance;
-    internal static QList.OptionTypes.BoolOption? SkipIntroOption;
     internal static Action<Scene, Scene>? activeSceneChangedDelegate;
+    internal static MelonPreferences_Entry<bool>? skipIntroEntry;
+
+    private bool QListPresent() => RegisteredMelons.Any(m => m.Info.Name == "QList");
 
     public override void OnInitializeMelon()
     {
@@ -22,21 +25,25 @@ public class Mod : MelonMod
         var skipIntroCategory = MelonPreferences.CreateCategory("Skip Intro");
         skipIntroCategory.SetFilePath(PreferencesConfig.filePath);
 
-        var skipIntroEntry = MelonPreferences.CreateEntry<bool>(skipIntroCategory.Identifier, "PLAY_INTRO", false, "Play intro");
-
-        QList.Options.RegisterMod(Mod.instance);
-
-        SkipIntroOption = new QList.OptionTypes.BoolOption(skipIntroEntry);
-
-        QList.Options.AddOption(SkipIntroOption);
+        skipIntroEntry = MelonPreferences.CreateEntry<bool>(skipIntroCategory.Identifier, "PLAY_INTRO", false, "Play intro");
 
         activeSceneChangedDelegate = new Action<Scene, Scene>(ActiveSceneChanged);
         SceneManager.activeSceneChanged += activeSceneChangedDelegate;
+
+        if (QListPresent())
+        {
+            QList.Options.RegisterMod(this);
+            //QList.Options.RegisterMod(Mod.instance);
+
+            //var skipIntroOption = new QList.OptionTypes.BoolOption(skipIntroEntry);
+
+            //QList.Options.AddOption(skipIntroOption);
+        }
     }
 
     private static void ActiveSceneChanged(Scene oldScene, Scene newScene)
     {
-        if (SkipIntroOption != null && !SkipIntroOption.GetValue() && SceneManager.GetActiveScene().name.Equals("Intro"))
+        if (skipIntroEntry != null && skipIntroEntry.Value && SceneManager.GetActiveScene().name.Equals("Intro"))
         {
             SceneManager.LoadScene("MainMenu");
         }
